@@ -1,11 +1,13 @@
 using InterviewManagement.API.Common;
 using InterviewManagement.API.DTOs.AuditLog;
 using InterviewManagement.API.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InterviewManagement.API.Controllers
 {
     [ApiController]
+    [Authorize(Roles = "Root,Admin")]
     [Route("api/v1/audit-logs")]
     public class AuditLogController : ControllerBase
     {

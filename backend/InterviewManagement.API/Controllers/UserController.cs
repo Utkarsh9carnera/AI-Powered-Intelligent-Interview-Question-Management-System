@@ -1,6 +1,8 @@
+using InterviewManagement.API.Attributes;
 using InterviewManagement.API.Common;
 using InterviewManagement.API.Data;
 using InterviewManagement.API.DTOs.User;
+using InterviewManagement.API.Enums;
 using InterviewManagement.API.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +21,7 @@ public class UserController : ControllerBase
     }
 
     // GET: api/v1/users
+    [PermissionAuthorize("User", PermissionAction.View)]
     [HttpGet]
     public async Task<ActionResult<ApiResponse<IEnumerable<UserResponseDto>>>> GetAllUsers()
     {
@@ -45,6 +48,7 @@ public class UserController : ControllerBase
     }
 
     // GET: api/v1/users/{id}
+    [PermissionAuthorize("User", PermissionAction.View)]
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ApiResponse<UserResponseDto>>> GetUser(Guid id)
     {
@@ -73,6 +77,7 @@ public class UserController : ControllerBase
     }
 
     // POST: api/v1/users
+    [PermissionAuthorize("User", PermissionAction.Create)]
     [HttpPost]
     public async Task<ActionResult<ApiResponse<UserResponseDto>>> CreateUser([FromBody] CreateUserDto dto)
     {
@@ -128,6 +133,7 @@ public class UserController : ControllerBase
     }
 
     // PUT: api/v1/users/{id}
+    [PermissionAuthorize("User", PermissionAction.Update)]
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<ApiResponse<UserResponseDto>>> UpdateUser(
         Guid id,
@@ -184,6 +190,7 @@ public class UserController : ControllerBase
     }
 
     // DELETE: api/v1/users/{id}
+    [PermissionAuthorize("User", PermissionAction.Delete)]
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<ApiResponse<object>>> DeleteUser(Guid id)
     {

@@ -1,11 +1,13 @@
 using InterviewManagement.API.Common;
 using InterviewManagement.API.DTOs.SearchHistory;
 using InterviewManagement.API.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InterviewManagement.API.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/v1/search-history")]
     public class SearchHistoryController : ControllerBase
     {

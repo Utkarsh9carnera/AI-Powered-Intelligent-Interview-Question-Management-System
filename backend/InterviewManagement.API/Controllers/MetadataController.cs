@@ -1,7 +1,10 @@
+using InterviewManagement.API.Attributes;
 using InterviewManagement.API.Common;
 using InterviewManagement.API.Data;
 using InterviewManagement.API.DTOs.Metadata;
+using InterviewManagement.API.Enums;
 using InterviewManagement.API.Models;
+using InterviewManagement.API.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,13 +15,18 @@ namespace InterviewManagement.API.Controllers;
 public class MetadataController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
+    private readonly IAuditLogService _auditLogService;
 
-    public MetadataController(ApplicationDbContext context)
+    public MetadataController(
+        ApplicationDbContext context,
+        IAuditLogService auditLogService)
     {
         _context = context;
+        _auditLogService = auditLogService;
     }
 
     // GET: api/v1/metadata
+    [PermissionAuthorize("Metadata", PermissionAction.View)]
     [HttpGet]
     public async Task<ActionResult<ApiResponse<IEnumerable<MetadataResponseDto>>>> GetAllMetadata()
     {
@@ -41,6 +49,7 @@ public class MetadataController : ControllerBase
     }
 
     // GET: api/v1/metadata/{id}
+    [PermissionAuthorize("Metadata", PermissionAction.View)]
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ApiResponse<MetadataResponseDto>>> GetMetadata(Guid id)
     {
@@ -65,6 +74,7 @@ public class MetadataController : ControllerBase
     }
 
     // POST: api/v1/metadata
+    [PermissionAuthorize("Metadata", PermissionAction.Create)]
     [HttpPost]
     public async Task<ActionResult<ApiResponse<MetadataResponseDto>>> CreateMetadata(
         [FromBody] CreateMetadataDto dto)
@@ -86,6 +96,17 @@ public class MetadataController : ControllerBase
         _context.Metadata.Add(metadata);
         await _context.SaveChangesAsync();
 
+        await _auditLogService.SaveAuditLogAsync(
+            null,
+            "Create Metadata",
+            "Metadata",
+            "Metadata",
+            metadata.Id,
+            $"Metadata '{metadata.Type} - {metadata.Value}' created.",
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            "Information",
+            "MetadataController");
+
         return CreatedAtAction(
             nameof(GetMetadata),
             new { id = metadata.Id },
@@ -104,6 +125,7 @@ public class MetadataController : ControllerBase
     }
 
     // PUT: api/v1/metadata/{id}
+    [PermissionAuthorize("Metadata", PermissionAction.Update)]
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<ApiResponse<MetadataResponseDto>>> UpdateMetadata(
         Guid id,
@@ -121,6 +143,17 @@ public class MetadataController : ControllerBase
 
         await _context.SaveChangesAsync();
 
+        await _auditLogService.SaveAuditLogAsync(
+            null,
+            "Update Metadata",
+            "Metadata",
+            "Metadata",
+            metadata.Id,
+            $"Metadata '{metadata.Type} - {metadata.Value}' updated.",
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            "Information",
+            "MetadataController");
+
         return Ok(new ApiResponse<MetadataResponseDto>
         {
             Success = true,
@@ -136,6 +169,7 @@ public class MetadataController : ControllerBase
     }
 
     // DELETE: api/v1/metadata/{id}
+    [PermissionAuthorize("Metadata", PermissionAction.Delete)]
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<ApiResponse<object>>> DeleteMetadata(Guid id)
     {
@@ -147,6 +181,17 @@ public class MetadataController : ControllerBase
 
         _context.Metadata.Remove(metadata);
         await _context.SaveChangesAsync();
+
+        await _auditLogService.SaveAuditLogAsync(
+            null,
+            "Delete Metadata",
+            "Metadata",
+            "Metadata",
+            metadata.Id,
+            $"Metadata '{metadata.Type} - {metadata.Value}' deleted.",
+            HttpContext.Connection.RemoteIpAddress?.ToString(),
+            "Warning",
+            "MetadataController");
 
         return Ok(new ApiResponse<object>
         {

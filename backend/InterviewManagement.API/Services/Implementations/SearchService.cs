@@ -21,7 +21,7 @@ namespace InterviewManagement.API.Services.Implementations
             _auditLogService = auditLogService;
         }
 
-        public async Task<IEnumerable<SearchResponseDto>> SearchQuestionsAsync(SearchRequestDto request)
+        public async Task<SearchResultDto> SearchQuestionsAsync(SearchRequestDto request)
         {
             var query = _context.Questions
                 .Include(q => q.CreatedByUser)
@@ -52,7 +52,12 @@ namespace InterviewManagement.API.Services.Implementations
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize);
 
-            var questions = await query.ToListAsync();
+            var totalRecords = await query.CountAsync();
+
+var questions = await query
+    .Skip((request.PageNumber - 1) * request.PageSize)
+    .Take(request.PageSize)
+    .ToListAsync();
 
             var result = questions.Select(q => new SearchResponseDto
             {
@@ -72,9 +77,38 @@ namespace InterviewManagement.API.Services.Implementations
                         Value = qm.Metadata.Value
                     })
                     .ToList()
-            });
 
-            return result;
+            }).ToList();
+
+            // Save Search History
+            await _searchHistoryService.SaveSearchHistoryAsync(
+                request.UserId,
+                request.Keyword ?? string.Empty,
+                request.MetadataIds.Any()
+                    ? string.Join(",", request.MetadataIds)
+                    : "No Filters",
+                "Database Search"
+            );
+            // Save Audit Log
+await _auditLogService.SaveAuditLogAsync(
+    request.UserId,
+    "Search",
+    "Question Search",
+    "Question",
+    null,
+    $"User searched for '{request.Keyword ?? "All Questions"}'",
+    null,
+    "Information",
+    "SearchService"
+);
+
+            return new SearchResultDto
+{
+    TotalRecords = totalRecords,
+    PageNumber = request.PageNumber,
+    PageSize = request.PageSize,
+    Questions = result
+};
         }
     }
 }

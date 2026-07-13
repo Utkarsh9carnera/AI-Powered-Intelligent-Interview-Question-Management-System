@@ -2,9 +2,11 @@ namespace InterviewManagement.API.DTOs.Search
 {
     public class SearchRequestDto
     {
+        // Temporary until JWT authentication is used
+        public Guid UserId { get; set; }
+
         public string? Keyword { get; set; }
 
-        // Selected metadata IDs
         public List<Guid> MetadataIds { get; set; } = new();
 
         public int PageNumber { get; set; } = 1;

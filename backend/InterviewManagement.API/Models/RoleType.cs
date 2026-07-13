@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace InterviewManagement.API.Models
 {
     public class RoleType
@@ -8,7 +11,6 @@ namespace InterviewManagement.API.Models
 
         public string Description { get; set; } = string.Empty;
 
-        // Navigation Properties
         public ICollection<User> Users { get; set; } = new List<User>();
 
         public ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
