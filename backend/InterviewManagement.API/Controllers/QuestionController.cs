@@ -28,7 +28,7 @@ public class QuestionController : ControllerBase
     // POST: api/v1/questions
     [PermissionAuthorize("Question", PermissionAction.Create)]
     [HttpPost]
-    public async Task<ActionResult<ApiResponse<Question>>> CreateQuestion(
+    public async Task<ActionResult<ApiResponse<QuestionResponseDto>>> CreateQuestion(
         [FromBody] CreateQuestionDto dto)
     {
         var userExists = await _context.Users
@@ -46,6 +46,25 @@ public class QuestionController : ControllerBase
         };
 
         _context.Questions.Add(question);
+
+        await _context.SaveChangesAsync();
+
+        foreach (var metadataId in dto.MetadataIds)
+        {
+            var metadataExists = await _context.Metadata
+                .AnyAsync(m => m.Id == metadataId);
+
+            if (!metadataExists)
+                continue;
+
+            _context.QuestionMetadata.Add(
+                new QuestionMetadata
+                {
+                    QuestionId = question.Id,
+                    MetadataId = metadataId
+                });
+        }
+
         await _context.SaveChangesAsync();
 
         await _auditLogService.SaveAuditLogAsync(
@@ -59,14 +78,48 @@ public class QuestionController : ControllerBase
             "Information",
             "QuestionController");
 
+        var response = await _context.Questions
+            .Include(q => q.CreatedByUser)
+            .Include(q => q.QuestionMetadata)
+                .ThenInclude(qm => qm.Metadata)
+            .Where(q => q.Id == question.Id)
+            .Select(q => new QuestionResponseDto
+            {
+                Id = q.Id,
+                Title = q.Title,
+                Description = q.Description,
+                Answer = q.Answer,
+                IsActive = !q.IsDeleted,
+
+                Topic = q.QuestionMetadata
+                    .Where(qm => qm.Metadata.Type == "Topic")
+                    .Select(qm => qm.Metadata.Value)
+                    .FirstOrDefault() ?? "-",
+
+                Difficulty = q.QuestionMetadata
+                    .Where(qm => qm.Metadata.Type == "Difficulty")
+                    .Select(qm => qm.Metadata.Value)
+                    .FirstOrDefault() ?? "-",
+
+                CreatedBy = q.CreatedBy,
+
+                CreatedByName =
+                    q.CreatedByUser.FirstName + " " +
+                    q.CreatedByUser.LastName,
+
+                CreatedAt = q.CreatedAt,
+                UpdatedAt = q.UpdatedAt
+            })
+            .FirstAsync();
+
         return CreatedAtAction(
             nameof(GetQuestion),
             new { id = question.Id },
-            new ApiResponse<Question>
+            new ApiResponse<QuestionResponseDto>
             {
                 Success = true,
                 Message = "Question created successfully.",
-                Data = question
+                Data = response
             });
     }
 
@@ -77,15 +130,39 @@ public class QuestionController : ControllerBase
     {
         var questions = await _context.Questions
             .Include(q => q.CreatedByUser)
+            .Include(q => q.QuestionMetadata)
+                .ThenInclude(qm => qm.Metadata)
             .Where(q => !q.IsDeleted)
             .Select(q => new QuestionResponseDto
             {
                 Id = q.Id,
+
                 Title = q.Title,
+
                 Description = q.Description,
+
                 Answer = q.Answer,
+
+                IsActive = !q.IsDeleted,
+
+                Topic = q.QuestionMetadata
+                    .Where(qm => qm.Metadata.Type == "Topic")
+                    .Select(qm => qm.Metadata.Value)
+                    .FirstOrDefault() ?? "-",
+
+                Difficulty = q.QuestionMetadata
+                    .Where(qm => qm.Metadata.Type == "Difficulty")
+                    .Select(qm => qm.Metadata.Value)
+                    .FirstOrDefault() ?? "-",
+
                 CreatedBy = q.CreatedBy,
+
+                CreatedByName =
+                    q.CreatedByUser.FirstName + " " +
+                    q.CreatedByUser.LastName,
+
                 CreatedAt = q.CreatedAt,
+
                 UpdatedAt = q.UpdatedAt
             })
             .ToListAsync();
@@ -97,19 +174,54 @@ public class QuestionController : ControllerBase
             Data = questions
         });
     }
-
-    // GET: api/v1/questions/{id}
+        // GET: api/v1/questions/{id}
     [PermissionAuthorize("Question", PermissionAction.View)]
     [HttpGet("{id}")]
-    public async Task<ActionResult<ApiResponse<Question>>> GetQuestion(Guid id)
+    public async Task<ActionResult<ApiResponse<QuestionResponseDto>>> GetQuestion(Guid id)
     {
         var question = await _context.Questions
-            .FirstOrDefaultAsync(q => q.Id == id && !q.IsDeleted);
+            .Include(q => q.CreatedByUser)
+            .Include(q => q.QuestionMetadata)
+                .ThenInclude(qm => qm.Metadata)
+            .Where(q => q.Id == id && !q.IsDeleted)
+            .Select(q => new QuestionResponseDto
+            {
+                Id = q.Id,
+
+                Title = q.Title,
+
+                Description = q.Description,
+
+                Answer = q.Answer,
+
+                IsActive = !q.IsDeleted,
+
+                Topic = q.QuestionMetadata
+                    .Where(qm => qm.Metadata.Type == "Topic")
+                    .Select(qm => qm.Metadata.Value)
+                    .FirstOrDefault() ?? "-",
+
+                Difficulty = q.QuestionMetadata
+                    .Where(qm => qm.Metadata.Type == "Difficulty")
+                    .Select(qm => qm.Metadata.Value)
+                    .FirstOrDefault() ?? "-",
+
+                CreatedBy = q.CreatedBy,
+
+                CreatedByName =
+                    q.CreatedByUser.FirstName + " " +
+                    q.CreatedByUser.LastName,
+
+                CreatedAt = q.CreatedAt,
+
+                UpdatedAt = q.UpdatedAt
+            })
+            .FirstOrDefaultAsync();
 
         if (question == null)
             throw new KeyNotFoundException("Question not found.");
 
-        return Ok(new ApiResponse<Question>
+        return Ok(new ApiResponse<QuestionResponseDto>
         {
             Success = true,
             Message = "Question retrieved successfully.",
@@ -120,7 +232,7 @@ public class QuestionController : ControllerBase
     // PUT: api/v1/questions/{id}
     [PermissionAuthorize("Question", PermissionAction.Update)]
     [HttpPut("{id}")]
-    public async Task<ActionResult<ApiResponse<Question>>> UpdateQuestion(
+    public async Task<ActionResult<ApiResponse<QuestionResponseDto>>> UpdateQuestion(
         Guid id,
         [FromBody] UpdateQuestionDto dto)
     {
@@ -135,6 +247,28 @@ public class QuestionController : ControllerBase
         question.Answer = dto.Answer;
         question.UpdatedAt = DateTime.UtcNow;
 
+        var existingMappings = await _context.QuestionMetadata
+            .Where(qm => qm.QuestionId == id)
+            .ToListAsync();
+
+        _context.QuestionMetadata.RemoveRange(existingMappings);
+
+        foreach (var metadataId in dto.MetadataIds)
+        {
+            var metadataExists = await _context.Metadata
+                .AnyAsync(m => m.Id == metadataId);
+
+            if (!metadataExists)
+                continue;
+
+            _context.QuestionMetadata.Add(
+                new QuestionMetadata
+                {
+                    QuestionId = id,
+                    MetadataId = metadataId
+                });
+        }
+
         await _context.SaveChangesAsync();
 
         await _auditLogService.SaveAuditLogAsync(
@@ -148,11 +282,50 @@ public class QuestionController : ControllerBase
             "Information",
             "QuestionController");
 
-        return Ok(new ApiResponse<Question>
+        var response = await _context.Questions
+            .Include(q => q.CreatedByUser)
+            .Include(q => q.QuestionMetadata)
+                .ThenInclude(qm => qm.Metadata)
+            .Where(q => q.Id == id)
+            .Select(q => new QuestionResponseDto
+            {
+                Id = q.Id,
+
+                Title = q.Title,
+
+                Description = q.Description,
+
+                Answer = q.Answer,
+
+                IsActive = !q.IsDeleted,
+
+                Topic = q.QuestionMetadata
+                    .Where(qm => qm.Metadata.Type == "Topic")
+                    .Select(qm => qm.Metadata.Value)
+                    .FirstOrDefault() ?? "-",
+
+                Difficulty = q.QuestionMetadata
+                    .Where(qm => qm.Metadata.Type == "Difficulty")
+                    .Select(qm => qm.Metadata.Value)
+                    .FirstOrDefault() ?? "-",
+
+                CreatedBy = q.CreatedBy,
+
+                CreatedByName =
+                    q.CreatedByUser.FirstName + " " +
+                    q.CreatedByUser.LastName,
+
+                CreatedAt = q.CreatedAt,
+
+                UpdatedAt = q.UpdatedAt
+            })
+            .FirstAsync();
+
+        return Ok(new ApiResponse<QuestionResponseDto>
         {
             Success = true,
             Message = "Question updated successfully.",
-            Data = question
+            Data = response
         });
     }
 

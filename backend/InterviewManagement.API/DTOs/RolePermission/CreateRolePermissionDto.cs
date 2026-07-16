@@ -5,7 +5,7 @@ namespace InterviewManagement.API.DTOs.RolePermission
     public class CreateRolePermissionDto
     {
         [Required]
-        public Guid RoleTypeId { get; set; }
+        public Guid RoleId { get; set; }
 
         [Required]
         [StringLength(100)]

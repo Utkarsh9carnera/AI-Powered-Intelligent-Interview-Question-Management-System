@@ -72,19 +72,19 @@ namespace InterviewManagement.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("RoleTypeId")
+                    b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("RolePermissionId");
 
-                    b.HasIndex("RoleTypeId");
+                    b.HasIndex("RoleId");
 
                     b.ToTable("RolePermissions");
                 });
 
             modelBuilder.Entity("InterviewManagement.API.Models.RoleType", b =>
                 {
-                    b.Property<Guid>("RoleTypeId")
+                    b.Property<Guid>("RoleId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
@@ -96,7 +96,7 @@ namespace InterviewManagement.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("RoleTypeId");
+                    b.HasKey("RoleId");
 
                     b.ToTable("RoleTypes");
                 });
@@ -134,14 +134,14 @@ namespace InterviewManagement.API.Migrations
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("RoleTypeId")
+                    b.Property<Guid?>("RoleId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
                     b.HasIndex("OrganizationId");
 
-                    b.HasIndex("RoleTypeId");
+                    b.HasIndex("RoleId");
 
                     b.ToTable("Users");
                 });
@@ -150,7 +150,7 @@ namespace InterviewManagement.API.Migrations
                 {
                     b.HasOne("InterviewManagement.API.Models.RoleType", "RoleType")
                         .WithMany("RolePermissions")
-                        .HasForeignKey("RoleTypeId")
+                        .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -165,7 +165,7 @@ namespace InterviewManagement.API.Migrations
 
                     b.HasOne("InterviewManagement.API.Models.RoleType", "RoleType")
                         .WithMany("Users")
-                        .HasForeignKey("RoleTypeId");
+                        .HasForeignKey("RoleId");
 
                     b.Navigation("Organization");
 

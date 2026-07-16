@@ -16,7 +16,6 @@ namespace InterviewManagement.API.Models
 
         public bool CanDelete { get; set; }
 
-        // Navigation Property
         public RoleType RoleType { get; set; } = null!;
     }
 }

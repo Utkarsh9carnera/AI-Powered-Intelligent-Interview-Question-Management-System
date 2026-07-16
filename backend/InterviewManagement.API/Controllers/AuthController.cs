@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace InterviewManagement.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+[Route("api/v1/[controller]")]
+public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
 

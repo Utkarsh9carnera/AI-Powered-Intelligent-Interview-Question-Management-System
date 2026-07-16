@@ -4,7 +4,7 @@ namespace InterviewManagement.API.DTOs.RolePermission
     {
         public Guid RolePermissionId { get; set; }
 
-        public Guid RoleTypeId { get; set; }
+        public Guid RoleId { get; set; }
 
         public string Permission { get; set; } = string.Empty;
 

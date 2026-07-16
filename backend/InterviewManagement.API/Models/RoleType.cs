@@ -1,10 +1,10 @@
-using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace InterviewManagement.API.Models
 {
     public class RoleType
     {
+        [Key]
         public Guid RoleTypeId { get; set; }
 
         public string RoleName { get; set; } = string.Empty;

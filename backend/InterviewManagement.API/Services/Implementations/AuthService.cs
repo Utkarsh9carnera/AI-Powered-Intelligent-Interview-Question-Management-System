@@ -44,18 +44,23 @@ private readonly IGoogleAuthService _googleAuthService;
     user.LastLogin = DateTime.UtcNow;
 
     await _context.SaveChangesAsync();
-
+Console.WriteLine("==================================");
+Console.WriteLine($"Email      : {user.Email}");
+Console.WriteLine($"RoleId     : {user.RoleId}");
+Console.WriteLine($"RoleType   : {(user.RoleType == null ? "NULL" : user.RoleType.RoleName)}");
+Console.WriteLine("==================================");
     var token = _jwtService.GenerateToken(user);
 
     return new LoginResponseDto
-    {
-        Token = token,
-        ExpiresAt = DateTime.UtcNow.AddMinutes(120),
-        UserId = user.Id,
-        FullName = $"{user.FirstName} {user.LastName}",
-        Email = user.Email,
-        Role = user.RoleType?.RoleName ?? string.Empty
-    };
+{
+    Token = token,
+    ExpiresAt = DateTime.UtcNow.AddMinutes(120),
+    UserId = user.Id,
+    FullName = $"{user.FirstName} {user.LastName}",
+    Email = user.Email,
+    Role = user.RoleType?.RoleName ?? string.Empty,
+    ProfilePicture = googleUser.Picture
+};
 }
     }
 }

@@ -26,12 +26,24 @@ builder.Services.Configure<GoogleAuthSettings>(
 builder.Services.Configure<JwtSettings>(
     builder.Configuration.GetSection("JwtSettings"));
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 // ==============================
 // Dependency Injection
 // ==============================
 
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -73,6 +85,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization(options =>
 {
+    // ------------------------------
+    // Question Policies
+    // ------------------------------
+
     options.AddPolicy("Question:View",
         policy => policy.Requirements.Add(
             new PermissionRequirement("Question", PermissionAction.View)));
@@ -89,6 +105,10 @@ builder.Services.AddAuthorization(options =>
         policy => policy.Requirements.Add(
             new PermissionRequirement("Question", PermissionAction.Delete)));
 
+    // ------------------------------
+    // Metadata Policies
+    // ------------------------------
+
     options.AddPolicy("Metadata:View",
         policy => policy.Requirements.Add(
             new PermissionRequirement("Metadata", PermissionAction.View)));
@@ -104,6 +124,26 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("Metadata:Delete",
         policy => policy.Requirements.Add(
             new PermissionRequirement("Metadata", PermissionAction.Delete)));
+
+    // ------------------------------
+    // User Policies
+    // ------------------------------
+
+    options.AddPolicy("User:View",
+        policy => policy.Requirements.Add(
+            new PermissionRequirement("User", PermissionAction.View)));
+
+    options.AddPolicy("User:Create",
+        policy => policy.Requirements.Add(
+            new PermissionRequirement("User", PermissionAction.Create)));
+
+    options.AddPolicy("User:Update",
+        policy => policy.Requirements.Add(
+            new PermissionRequirement("User", PermissionAction.Update)));
+
+    options.AddPolicy("User:Delete",
+        policy => policy.Requirements.Add(
+            new PermissionRequirement("User", PermissionAction.Delete)));
 });
 
 // ==============================
@@ -191,7 +231,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors("AllowFrontend");
+
 app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();

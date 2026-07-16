@@ -34,9 +34,9 @@ namespace InterviewManagement.API.Authorization
                 return;
 
             var rolePermission = await _context.RolePermissions
-                .FirstOrDefaultAsync(r =>
-                    r.RoleTypeId == user.RoleId &&
-                    r.Permission == requirement.Permission);
+    .FirstOrDefaultAsync(r =>
+        r.RoleTypeId == user.RoleId &&
+        r.Permission == requirement.Permission);
 
             if (rolePermission == null)
                 return;

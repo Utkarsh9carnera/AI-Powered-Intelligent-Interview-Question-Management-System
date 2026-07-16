@@ -23,7 +23,7 @@ namespace InterviewManagement.API.Migrations
                 table: "Users");
 
             migrationBuilder.AddColumn<Guid>(
-                name: "RoleTypeId",
+                name: "RoleId",
                 table: "Users",
                 type: "uniqueidentifier",
                 nullable: true);
@@ -32,13 +32,13 @@ namespace InterviewManagement.API.Migrations
                 name: "RoleTypes",
                 columns: table => new
                 {
-                    RoleTypeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    RoleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     RoleName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RoleTypes", x => x.RoleTypeId);
+                    table.PrimaryKey("PK_RoleTypes", x => x.RoleId);
                 });
 
             migrationBuilder.CreateTable(
@@ -46,7 +46,7 @@ namespace InterviewManagement.API.Migrations
                 columns: table => new
                 {
                     RolePermissionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    RoleTypeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    RoleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Permission = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CanView = table.Column<bool>(type: "bit", nullable: false),
                     CanCreate = table.Column<bool>(type: "bit", nullable: false),
@@ -57,36 +57,36 @@ namespace InterviewManagement.API.Migrations
                 {
                     table.PrimaryKey("PK_RolePermissions", x => x.RolePermissionId);
                     table.ForeignKey(
-                        name: "FK_RolePermissions_RoleTypes_RoleTypeId",
-                        column: x => x.RoleTypeId,
+                        name: "FK_RolePermissions_RoleTypes_RoleId",
+                        column: x => x.RoleId,
                         principalTable: "RoleTypes",
-                        principalColumn: "RoleTypeId",
+                        principalColumn: "RoleId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_RoleTypeId",
+                name: "IX_Users_RoleId",
                 table: "Users",
-                column: "RoleTypeId");
+                column: "RoleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RolePermissions_RoleTypeId",
+                name: "IX_RolePermissions_RoleId",
                 table: "RolePermissions",
-                column: "RoleTypeId");
+                column: "RoleId");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_Users_RoleTypes_RoleTypeId",
+                name: "FK_Users_RoleTypes_RoleId",
                 table: "Users",
-                column: "RoleTypeId",
+                column: "RoleId",
                 principalTable: "RoleTypes",
-                principalColumn: "RoleTypeId");
+                principalColumn: "RoleId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_Users_RoleTypes_RoleTypeId",
+                name: "FK_Users_RoleTypes_RoleId",
                 table: "Users");
 
             migrationBuilder.DropTable(
@@ -96,11 +96,11 @@ namespace InterviewManagement.API.Migrations
                 name: "RoleTypes");
 
             migrationBuilder.DropIndex(
-                name: "IX_Users_RoleTypeId",
+                name: "IX_Users_RoleId",
                 table: "Users");
 
             migrationBuilder.DropColumn(
-                name: "RoleTypeId",
+                name: "RoleId",
                 table: "Users");
 
             migrationBuilder.CreateTable(
