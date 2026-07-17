@@ -11,11 +11,14 @@ import SearchPage from "../pages/Search/SearchPage";
 import AdminsPage from "../components/users/AdminsPage";
 import QuestionManagersPage from "../components/users/QuestionManagersPage";
 import ViewersPage from "../components/users/ViewersPage";
+import QuestionsPage from "../components/questions/QuestionsPage";
+import MetadataPage from "../pages/Metadata/MetadataPage";
 
 function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Landing */}
         <Route
           path="/"
           element={<LandingPage />}
@@ -73,6 +76,26 @@ function AppRoutes() {
           element={
             <DashboardLayout>
               <ViewersPage />
+            </DashboardLayout>
+          }
+        />
+
+        {/* Questions */}
+        <Route
+          path="/settings/questions"
+          element={
+            <DashboardLayout>
+              <QuestionsPage />
+            </DashboardLayout>
+          }
+        />
+
+        {/* Metadata */}
+        <Route
+          path="/settings/metadata"
+          element={
+            <DashboardLayout>
+              <MetadataPage />
             </DashboardLayout>
           }
         />

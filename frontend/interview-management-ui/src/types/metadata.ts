@@ -22,4 +22,4 @@ export interface UpdateMetadataRequest {
   value: string;
 
   description: string;
-}
+}   

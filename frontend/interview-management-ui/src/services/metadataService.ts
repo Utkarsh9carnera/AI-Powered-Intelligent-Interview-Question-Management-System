@@ -1,5 +1,4 @@
 import api from "./api";
-
 import type {
   Metadata,
   CreateMetadataRequest,
@@ -32,12 +31,15 @@ const updateMetadata = (
     data
   );
 
-const deleteMetadata = (
-  id: string
-) =>
-  api.delete<ApiResponse<object>>(
+const deleteMetadata = (id: string) =>
+  api.delete<ApiResponse<void>>(
     `/metadata/${id}`
   );
+
+export type {
+  CreateMetadataRequest,
+  UpdateMetadataRequest,
+};
 
 export default {
   getMetadata,

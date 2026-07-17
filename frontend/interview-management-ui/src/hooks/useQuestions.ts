@@ -9,14 +9,8 @@ import type { Question } from "../types/question";
 
 export function useQuestions() {
   const [questions, setQuestions] = useState<Question[]>([]);
-
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    loadQuestions();
-  }, []);
 
   const loadQuestions = async () => {
     try {
@@ -38,6 +32,10 @@ export function useQuestions() {
     }
   };
 
+  useEffect(() => {
+    loadQuestions();
+  }, []);
+
   const createQuestion = async (
     data: CreateQuestionRequest
   ) => {
@@ -50,7 +48,10 @@ export function useQuestions() {
     id: string,
     data: UpdateQuestionRequest
   ) => {
-    await questionService.updateQuestion(id, data);
+    await questionService.updateQuestion(
+      id,
+      data
+    );
 
     await loadQuestions();
   };
@@ -58,7 +59,9 @@ export function useQuestions() {
   const deleteQuestion = async (
     id: string
   ) => {
-    await questionService.deleteQuestion(id);
+    await questionService.deleteQuestion(
+      id
+    );
 
     await loadQuestions();
   };

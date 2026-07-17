@@ -1,18 +1,19 @@
-import {
-  useEffect,
-  useState,
-} from "react";
+import { useEffect, useState } from "react";
 
 import metadataService from "../services/metadataService";
 
-import type { Metadata } from "../types/metadata";
+import type {
+  Metadata,
+  CreateMetadataRequest,
+  UpdateMetadataRequest,
+} from "../types/metadata";
 
 export function useMetadata() {
   const [metadata, setMetadata] =
     useState<Metadata[]>([]);
 
   const [loading, setLoading] =
-    useState(false);
+    useState(true);
 
   const [error, setError] =
     useState("");
@@ -44,10 +45,46 @@ export function useMetadata() {
     loadMetadata();
   }, []);
 
+  const createMetadata =
+    async (
+      data: CreateMetadataRequest
+    ) => {
+      await metadataService.createMetadata(
+        data
+      );
+
+      await loadMetadata();
+    };
+
+  const updateMetadata =
+    async (
+      id: string,
+      data: UpdateMetadataRequest
+    ) => {
+      await metadataService.updateMetadata(
+        id,
+        data
+      );
+
+      await loadMetadata();
+    };
+
+  const deleteMetadata =
+    async (id: string) => {
+      await metadataService.deleteMetadata(
+        id
+      );
+
+      await loadMetadata();
+    };
+
   return {
     metadata,
     loading,
     error,
     refresh: loadMetadata,
+    createMetadata,
+    updateMetadata,
+    deleteMetadata,
   };
 }

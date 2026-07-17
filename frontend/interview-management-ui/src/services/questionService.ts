@@ -2,39 +2,29 @@ import api from "./api";
 
 import type { Question } from "../types/question";
 
+export interface CreateQuestionRequest {
+  title: string;
+  description: string;
+  answer: string;
+  createdBy: string;
+  metadataIds: string[];
+}
+
+export interface UpdateQuestionRequest {
+  title: string;
+  description: string;
+  answer: string;
+  metadataIds: string[];
+}
+
 interface ApiResponse<T> {
   success: boolean;
   message: string;
   data: T;
 }
 
-export interface CreateQuestionRequest {
-  title: string;
-
-  description: string;
-
-  answer: string;
-
-  createdBy: string;
-
-  metadataIds: string[];
-}
-
-export interface UpdateQuestionRequest {
-  title: string;
-
-  description: string;
-
-  answer: string;
-
-  metadataIds: string[];
-}
-
 const getQuestions = () =>
   api.get<ApiResponse<Question[]>>("/questions");
-
-const getQuestion = (id: string) =>
-  api.get<ApiResponse<Question>>(`/questions/${id}`);
 
 const createQuestion = (
   data: CreateQuestionRequest
@@ -56,13 +46,12 @@ const updateQuestion = (
 const deleteQuestion = (
   id: string
 ) =>
-  api.delete<ApiResponse<object>>(
+  api.delete<ApiResponse<void>>(
     `/questions/${id}`
   );
 
 export default {
   getQuestions,
-  getQuestion,
   createQuestion,
   updateQuestion,
   deleteQuestion,

@@ -10,26 +10,64 @@ import {
 
 import { useQuestions } from "../../hooks/useQuestions";
 
+import type { Question } from "../../types/question";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 import QuestionHeader from "./QuestionHeader";
 import QuestionStatistics from "./QuestionStatistics";
 import QuestionFilters from "./QuestionFilters";
 import QuestionTable from "./QuestionTable";
+import QuestionDialog from "./QuestionDialog";
+import DeleteQuestionDialog from "./DeleteQuestionDialog";
 
 function QuestionsPage() {
-  const [globalSearch, setGlobalSearch] = useState("");
+  const [globalSearch, setGlobalSearch] =
+    useState("");
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] =
+    useState("");
 
-  const [topic, setTopic] = useState("");
+  const [topic, setTopic] =
+    useState("");
 
-  const [difficulty, setDifficulty] = useState("");
+  const [difficulty, setDifficulty] =
+    useState("");
 
-  const [status, setStatus] = useState("");
+  const [status, setStatus] =
+    useState("");
+
+  const [dialogOpen, setDialogOpen] =
+    useState(false);
+
+  const [selectedQuestion, setSelectedQuestion] =
+    useState<Question>();
+
+  const [deleteOpen, setDeleteOpen] =
+    useState(false);
+const [snackbar, setSnackbar] =
+  useState({
+    open: false,
+    message: "",
+    severity: "success" as
+      | "success"
+      | "error",
+  });
+  const [
+    deleteQuestionItem,
+    setDeleteQuestionItem,
+  ] = useState<Question>();
+
+  const user = JSON.parse(
+    localStorage.getItem("user") ?? "{}"
+  );
 
   const {
     questions,
     loading,
     error,
+    createQuestion,
+    updateQuestion,
+    deleteQuestion,
   } = useQuestions();
 
   const filteredQuestions = useMemo(() => {
@@ -46,11 +84,13 @@ function QuestionsPage() {
 
       const matchesDifficulty =
         difficulty === "" ||
-        question.difficulty === difficulty;
+        question.difficulty ===
+          difficulty;
 
       const matchesStatus =
         status === "" ||
-        String(question.isActive) === status;
+        String(question.isActive) ===
+          status;
 
       return (
         matchesSearch &&
@@ -67,37 +107,48 @@ function QuestionsPage() {
     status,
   ]);
 
-  const total = filteredQuestions.length;
+  const total =
+    filteredQuestions.length;
 
-  const active = filteredQuestions.filter(
-    (question) => question.isActive
-  ).length;
+  const active =
+    filteredQuestions.filter(
+      (question) =>
+        question.isActive
+    ).length;
 
-  const inactive = filteredQuestions.filter(
-    (question) => !question.isActive
-  ).length;
+  const inactive =
+    filteredQuestions.filter(
+      (question) =>
+        !question.isActive
+    ).length;
 
-  const topics = new Set(
-    filteredQuestions.map(
-      (question) => question.topic
-    )
-  ).size;
+  const topics =
+    new Set(
+      filteredQuestions.map(
+        (question) =>
+          question.topic
+      )
+    ).size;
 
   const newThisMonth =
-    filteredQuestions.filter((question) => {
-      const created = new Date(
-        question.createdAt
-      );
+    filteredQuestions.filter(
+      (question) => {
+        const created =
+          new Date(
+            question.createdAt
+          );
 
-      const today = new Date();
+        const today =
+          new Date();
 
-      return (
-        created.getMonth() ===
-          today.getMonth() &&
-        created.getFullYear() ===
-          today.getFullYear()
-      );
-    }).length;
+        return (
+          created.getMonth() ===
+            today.getMonth() &&
+          created.getFullYear() ===
+            today.getFullYear()
+        );
+      }
+    ).length;
 
   return (
     <Box
@@ -107,7 +158,9 @@ function QuestionsPage() {
     >
       <QuestionHeader
         search={globalSearch}
-        onSearchChange={setGlobalSearch}
+        onSearchChange={
+          setGlobalSearch
+        }
       />
 
       <Stack
@@ -132,21 +185,30 @@ function QuestionsPage() {
 
           <Typography
             sx={{
-              color: "text.secondary",
+              color:
+                "text.secondary",
             }}
           >
-            View, search, edit and organize
-            interview questions.
+            View, search, edit and
+            organize interview
+            questions.
           </Typography>
         </Box>
 
         <Button
           variant="contained"
+          onClick={() => {
+            setSelectedQuestion(
+              undefined
+            );
+            setDialogOpen(true);
+          }}
           sx={{
             px: 4,
             height: 48,
             borderRadius: 2,
-            textTransform: "none",
+            textTransform:
+              "none",
           }}
         >
           + Add Question
@@ -158,27 +220,38 @@ function QuestionsPage() {
         active={active}
         inactive={inactive}
         topics={topics}
-        newThisMonth={newThisMonth}
+        newThisMonth={
+          newThisMonth
+        }
       />
 
       <QuestionFilters
         search={search}
-        onSearchChange={setSearch}
+        onSearchChange={
+          setSearch
+        }
         topic={topic}
-        onTopicChange={setTopic}
-        difficulty={difficulty}
+        onTopicChange={
+          setTopic
+        }
+        difficulty={
+          difficulty
+        }
         onDifficultyChange={
           setDifficulty
         }
         status={status}
-        onStatusChange={setStatus}
+        onStatusChange={
+          setStatus
+        }
       />
 
       {loading && (
         <Box
           sx={{
             display: "flex",
-            justifyContent: "center",
+            justifyContent:
+              "center",
             mt: 5,
           }}
         >
@@ -190,18 +263,183 @@ function QuestionsPage() {
         <Typography
           sx={{
             mt: 3,
-            color: "error.main",
+            color:
+              "error.main",
           }}
         >
           {error}
         </Typography>
       )}
 
-      {!loading && !error && (
-        <QuestionTable
-          questions={filteredQuestions}
-        />
-      )}
+      {!loading &&
+        !error && (
+          <QuestionTable
+            questions={
+              filteredQuestions
+            }
+            onEdit={(
+              question
+            ) => {
+              setSelectedQuestion(
+                question
+              );
+              setDialogOpen(
+                true
+              );
+            }}
+            onDelete={(
+              question
+            ) => {
+              setDeleteQuestionItem(
+                question
+              );
+              setDeleteOpen(
+                true
+              );
+            }}
+          />
+        )}
+
+      <QuestionDialog
+        open={dialogOpen}
+        question={
+          selectedQuestion
+        }
+        createdBy={user.id}
+        onClose={() => {
+          setDialogOpen(
+            false
+          );
+          setSelectedQuestion(
+            undefined
+          );
+        }}
+        onSave={async (
+  data
+) => {
+  try {
+    if (
+      selectedQuestion
+    ) {
+      await updateQuestion(
+        selectedQuestion.id,
+        data as any
+      );
+
+      setSnackbar({
+        open: true,
+        message:
+          "Question updated successfully.",
+        severity: "success",
+      });
+    } else {
+      await createQuestion(
+        data as any
+      );
+
+      setSnackbar({
+        open: true,
+        message:
+          "Question created successfully.",
+        severity: "success",
+      });
+    }
+
+    setDialogOpen(
+      false
+    );
+
+    setSelectedQuestion(
+      undefined
+    );
+  } catch {
+    setSnackbar({
+      open: true,
+      message:
+        selectedQuestion
+          ? "Failed to update question."
+          : "Failed to create question.",
+      severity: "error",
+      
+    });
+  }
+}}
+      />
+
+      <DeleteQuestionDialog
+        open={deleteOpen}
+        question={
+          deleteQuestionItem
+        }
+        onClose={() => {
+          setDeleteOpen(
+            false
+          );
+          setDeleteQuestionItem(
+            undefined
+          );
+        }}
+        onConfirm={async () => {
+  if (!deleteQuestionItem) {
+    return;
+  }
+
+  try {
+    await deleteQuestion(
+      deleteQuestionItem.id
+    );
+
+    setSnackbar({
+      open: true,
+      message:
+        "Question deleted successfully.",
+      severity: "success",
+    });
+
+    setDeleteOpen(false);
+    setDeleteQuestionItem(undefined);
+  } catch (err) {
+    setSnackbar({
+      open: true,
+      message:
+        "Failed to delete question.",
+      severity: "error",
+    });
+    setDeleteOpen(false);
+setDeleteQuestionItem(undefined);
+  }
+}}
+      />
+      <Snackbar
+  open={snackbar.open}
+  autoHideDuration={3000}
+  anchorOrigin={{
+    vertical: "top",
+    horizontal: "right",
+  }}
+  onClose={() =>
+    setSnackbar((prev) => ({
+      ...prev,
+      open: false,
+    }))
+  }
+>
+  <Alert
+    severity={snackbar.severity}
+    variant="filled"
+    onClose={() =>
+      setSnackbar((prev) => ({
+        ...prev,
+        open: false,
+      }))
+    }
+    sx={{
+      width: "100%",
+    }}
+  >
+    {snackbar.message}
+  </Alert>
+</Snackbar>
     </Box>
   );
 }

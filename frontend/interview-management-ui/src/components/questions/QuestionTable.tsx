@@ -12,15 +12,21 @@ import {
 
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import MoreVertOutlinedIcon from "@mui/icons-material/MoreVertOutlined";
-
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import type { Question } from "../../types/question";
 
 type QuestionTableProps = {
   questions: Question[];
+
+  onEdit: (question: Question) => void;
+
+  onDelete: (question: Question) => void;
 };
 
 function QuestionTable({
   questions,
+  onEdit,
+  onDelete,
 }: QuestionTableProps) {
   const difficultyColor = (
     difficulty: string
@@ -166,16 +172,25 @@ function QuestionTable({
                 </TableCell>
 
                 <TableCell align="center">
-                  <IconButton size="small">
-                    <EditOutlinedIcon
-                      fontSize="small"
-                    />
-                  </IconButton>
+                  <IconButton
+  size="small"
+  onClick={() => onEdit(question)}
+>
+  <EditOutlinedIcon fontSize="small" />
+</IconButton>
+
+<IconButton
+  size="small"
+  color="error"
+  onClick={() => onDelete(question)}
+>
+  <DeleteOutlineOutlinedIcon
+    fontSize="small"
+  />
+</IconButton>
 
                   <IconButton size="small">
-                    <MoreVertOutlinedIcon
-                      fontSize="small"
-                    />
+                    
                   </IconButton>
                 </TableCell>
               </TableRow>

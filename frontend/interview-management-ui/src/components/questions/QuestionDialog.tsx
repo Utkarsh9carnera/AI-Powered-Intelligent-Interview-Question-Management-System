@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
+  FormHelperText,
   InputLabel,
   MenuItem,
   Select,
@@ -46,8 +47,7 @@ function QuestionDialog({
 }: QuestionDialogProps) {
   const { metadata } = useMetadata();
 
-  const [title, setTitle] =
-    useState("");
+  const [title, setTitle] = useState("");
 
   const [description, setDescription] =
     useState("");
@@ -62,6 +62,17 @@ function QuestionDialog({
     selectedDifficulty,
     setSelectedDifficulty,
   ] = useState("");
+
+  const [saving, setSaving] =
+    useState(false);
+
+  const [errors, setErrors] = useState({
+    title: false,
+    description: false,
+    answer: false,
+    topic: false,
+    difficulty: false,
+  });
 
   useEffect(() => {
     if (question) {
@@ -83,6 +94,16 @@ function QuestionDialog({
       setSelectedTopic("");
       setSelectedDifficulty("");
     }
+
+    setErrors({
+      title: false,
+      description: false,
+      answer: false,
+      topic: false,
+      difficulty: false,
+    });
+
+    setSaving(false);
   }, [question, open]);
 
   const topics = metadata.filter(
@@ -96,6 +117,26 @@ function QuestionDialog({
     );
 
   const handleSave = async () => {
+    const validation = {
+      title: title.trim() === "",
+      description:
+        description.trim() === "",
+      answer: answer.trim() === "",
+      topic: selectedTopic === "",
+      difficulty:
+        selectedDifficulty === "",
+    };
+
+    setErrors(validation);
+
+    if (
+      Object.values(validation).some(
+        Boolean
+      )
+    ) {
+      return;
+    }
+
     const metadataIds =
       metadata
         .filter(
@@ -123,15 +164,28 @@ function QuestionDialog({
           metadataIds,
         } as CreateQuestionRequest);
 
-    await onSave(payload);
+    try {
+      setSaving(true);
 
-    onClose();
+      await onSave(payload);
+    } finally {
+      setSaving(false);
+    }
   };
+
+  const isFormValid =
+    title.trim() !== "" &&
+    description.trim() !== "" &&
+    answer.trim() !== "" &&
+    selectedTopic !== "" &&
+    selectedDifficulty !== "";
 
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={
+        saving ? undefined : onClose
+      }
       fullWidth
       maxWidth="md"
     >
@@ -149,23 +203,35 @@ function QuestionDialog({
           }}
         >
           <TextField
-            label="Question Title"
+            label="Question Title *"
             value={title}
             onChange={(e) =>
               setTitle(
                 e.target.value
               )
             }
+            error={errors.title}
+            helperText={
+              errors.title
+                ? "Question title is required."
+                : ""
+            }
             fullWidth
           />
 
           <TextField
-            label="Description"
+            label="Description *"
             value={description}
             onChange={(e) =>
               setDescription(
                 e.target.value
               )
+            }
+            error={errors.description}
+            helperText={
+              errors.description
+                ? "Description is required."
+                : ""
             }
             multiline
             rows={3}
@@ -173,26 +239,35 @@ function QuestionDialog({
           />
 
           <TextField
-            label="Answer"
+            label="Answer *"
             value={answer}
             onChange={(e) =>
               setAnswer(
                 e.target.value
               )
             }
+            error={errors.answer}
+            helperText={
+              errors.answer
+                ? "Answer is required."
+                : ""
+            }
             multiline
             rows={5}
             fullWidth
           />
 
-          <FormControl fullWidth>
+          <FormControl
+            fullWidth
+            error={errors.topic}
+          >
             <InputLabel>
-              Topic
+              Topic *
             </InputLabel>
 
             <Select
               value={selectedTopic}
-              label="Topic"
+              label="Topic *"
               onChange={(e) =>
                 setSelectedTopic(
                   e.target.value
@@ -208,18 +283,29 @@ function QuestionDialog({
                 </MenuItem>
               ))}
             </Select>
+
+            <FormHelperText>
+              {errors.topic
+                ? "Please select a topic."
+                : ""}
+            </FormHelperText>
           </FormControl>
 
-          <FormControl fullWidth>
+          <FormControl
+            fullWidth
+            error={
+              errors.difficulty
+            }
+          >
             <InputLabel>
-              Difficulty
+              Difficulty *
             </InputLabel>
 
             <Select
               value={
                 selectedDifficulty
               }
-              label="Difficulty"
+              label="Difficulty *"
               onChange={(e) =>
                 setSelectedDifficulty(
                   e.target.value
@@ -245,6 +331,12 @@ function QuestionDialog({
                 )
               )}
             </Select>
+
+            <FormHelperText>
+              {errors.difficulty
+                ? "Please select a difficulty."
+                : ""}
+            </FormHelperText>
           </FormControl>
         </Stack>
       </DialogContent>
@@ -252,6 +344,7 @@ function QuestionDialog({
       <DialogActions>
         <Button
           onClick={onClose}
+          disabled={saving}
         >
           Cancel
         </Button>
@@ -259,8 +352,14 @@ function QuestionDialog({
         <Button
           variant="contained"
           onClick={handleSave}
+          disabled={
+            !isFormValid ||
+            saving
+          }
         >
-          {question
+          {saving
+            ? "Saving..."
+            : question
             ? "Update"
             : "Create"}
         </Button>
