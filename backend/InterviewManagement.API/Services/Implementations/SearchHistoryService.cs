@@ -68,19 +68,33 @@ namespace InterviewManagement.API.Services.Implementations
                 throw new Exception("User not found.");
             }
 
-            var history = new SearchHistory
-            {
-                Id = Guid.NewGuid(),
-                UserId = userId,
-                Query = query,
-                AppliedFilters = appliedFilters,
-                AIResponse = aiResponse,
-                SearchedAt = DateTime.UtcNow
-            };
+           var existingHistory = await _context.SearchHistories
+    .FirstOrDefaultAsync(h =>
+        h.UserId == userId &&
+        h.Query.ToLower() == query.Trim().ToLower());
 
-            _context.SearchHistories.Add(history);
+if (existingHistory != null)
+{
+    existingHistory.SearchedAt = DateTime.UtcNow;
+    existingHistory.AppliedFilters = appliedFilters;
+    existingHistory.AIResponse = aiResponse;
+}
+else
+{
+    var history = new SearchHistory
+    {
+        Id = Guid.NewGuid(),
+        UserId = userId,
+        Query = query.Trim(),
+        AppliedFilters = appliedFilters,
+        AIResponse = aiResponse,
+        SearchedAt = DateTime.UtcNow
+    };
 
-            await _context.SaveChangesAsync();
+    _context.SearchHistories.Add(history);
+}
+
+await _context.SaveChangesAsync();
         }
 
         public async Task<bool> DeleteSearchHistoryAsync(Guid id)

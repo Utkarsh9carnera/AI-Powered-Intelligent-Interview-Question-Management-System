@@ -130,7 +130,7 @@ namespace InterviewManagement.API.Services.Implementations
 
             // Validate role
             var role = await _context.RoleTypes
-                .FirstOrDefaultAsync(r => r.RoleTypeId == dto.RoleId);
+                .FirstOrDefaultAsync(r => r.RoleId == dto.RoleId);
 
             if (role == null)
                 throw new KeyNotFoundException("Role not found.");
@@ -185,7 +185,7 @@ namespace InterviewManagement.API.Services.Implementations
 
             // Validate role
             var role = await _context.RoleTypes
-                .FirstOrDefaultAsync(r => r.RoleTypeId == dto.RoleId);
+                .FirstOrDefaultAsync(r => r.RoleId == dto.RoleId);
 
             if (role == null)
                 throw new KeyNotFoundException("Role not found.");

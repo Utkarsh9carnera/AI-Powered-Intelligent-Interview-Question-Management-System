@@ -100,7 +100,15 @@ public class QuestionController : ControllerBase
                     .Where(qm => qm.Metadata.Type == "Difficulty")
                     .Select(qm => qm.Metadata.Value)
                     .FirstOrDefault() ?? "-",
+Organization = q.QuestionMetadata
+    .Where(qm => qm.Metadata.Type == "Organization")
+    .Select(qm => qm.Metadata.Value)
+    .FirstOrDefault() ?? "-",
 
+Manager = q.QuestionMetadata
+    .Where(qm => qm.Metadata.Type == "Manager")
+    .Select(qm => qm.Metadata.Value)
+    .FirstOrDefault() ?? "-",
                 CreatedBy = q.CreatedBy,
 
                 CreatedByName =
@@ -154,7 +162,15 @@ public class QuestionController : ControllerBase
                     .Where(qm => qm.Metadata.Type == "Difficulty")
                     .Select(qm => qm.Metadata.Value)
                     .FirstOrDefault() ?? "-",
+Organization = q.QuestionMetadata
+    .Where(qm => qm.Metadata.Type == "Organization")
+    .Select(qm => qm.Metadata.Value)
+    .FirstOrDefault() ?? "-",
 
+Manager = q.QuestionMetadata
+    .Where(qm => qm.Metadata.Type == "Manager")
+    .Select(qm => qm.Metadata.Value)
+    .FirstOrDefault() ?? "-",
                 CreatedBy = q.CreatedBy,
 
                 CreatedByName =
@@ -205,7 +221,15 @@ public class QuestionController : ControllerBase
                     .Where(qm => qm.Metadata.Type == "Difficulty")
                     .Select(qm => qm.Metadata.Value)
                     .FirstOrDefault() ?? "-",
+Organization = q.QuestionMetadata
+    .Where(qm => qm.Metadata.Type == "Organization")
+    .Select(qm => qm.Metadata.Value)
+    .FirstOrDefault() ?? "-",
 
+Manager = q.QuestionMetadata
+    .Where(qm => qm.Metadata.Type == "Manager")
+    .Select(qm => qm.Metadata.Value)
+    .FirstOrDefault() ?? "-",
                 CreatedBy = q.CreatedBy,
 
                 CreatedByName =
@@ -308,7 +332,15 @@ public class QuestionController : ControllerBase
                     .Where(qm => qm.Metadata.Type == "Difficulty")
                     .Select(qm => qm.Metadata.Value)
                     .FirstOrDefault() ?? "-",
+Organization = q.QuestionMetadata
+    .Where(qm => qm.Metadata.Type == "Organization")
+    .Select(qm => qm.Metadata.Value)
+    .FirstOrDefault() ?? "-",
 
+Manager = q.QuestionMetadata
+    .Where(qm => qm.Metadata.Type == "Manager")
+    .Select(qm => qm.Metadata.Value)
+    .FirstOrDefault() ?? "-",
                 CreatedBy = q.CreatedBy,
 
                 CreatedByName =
@@ -328,7 +360,72 @@ public class QuestionController : ControllerBase
             Data = response
         });
     }
+// GET: api/v1/questions/related/{id}
+// GET: api/v1/questions/related/{id}
+// GET: api/v1/questions/related/{id}
+[HttpGet("related/{id:guid}")]
+public async Task<ActionResult<ApiResponse<IEnumerable<QuestionResponseDto>>>> GetRelatedQuestions(Guid id)
+{
+    var current = await _context.Questions
+        .Include(q => q.QuestionMetadata)
+        .FirstOrDefaultAsync(q => q.Id == id);
 
+    if (current == null)
+    {
+        return NotFound();
+    }
+
+    var metadataIds = current.QuestionMetadata
+        .Select(qm => qm.MetadataId)
+        .ToList();
+
+    var related = await _context.Questions
+        .Include(q => q.CreatedByUser)
+        .Include(q => q.QuestionMetadata)
+            .ThenInclude(qm => qm.Metadata)
+        .Where(q =>
+            q.Id != id &&
+            !q.IsDeleted &&
+            q.QuestionMetadata.Any(qm => metadataIds.Contains(qm.MetadataId)))
+        .Take(5)
+        .ToListAsync();
+
+    var result = related.Select(q => new QuestionResponseDto
+    {
+        Id = q.Id,
+        Title = q.Title,
+        Description = q.Description,
+        Answer = q.Answer,
+
+        Topic = q.QuestionMetadata
+            .FirstOrDefault(m => m.Metadata.Type == "Topic")
+            ?.Metadata.Value ?? "",
+
+        Difficulty = q.QuestionMetadata
+    .FirstOrDefault(m => m.Metadata.Type == "Difficulty")
+    ?.Metadata.Value ?? "",
+
+Organization = q.QuestionMetadata
+    .FirstOrDefault(m => m.Metadata.Type == "Organization")
+    ?.Metadata.Value ?? "",
+
+Manager = q.QuestionMetadata
+    .FirstOrDefault(m => m.Metadata.Type == "Manager")
+    ?.Metadata.Value ?? "",
+
+        CreatedBy = q.CreatedBy,
+        CreatedByName = $"{q.CreatedByUser.FirstName} {q.CreatedByUser.LastName}",
+        CreatedAt = q.CreatedAt,
+        UpdatedAt = q.UpdatedAt
+    }).ToList();
+
+    return Ok(new ApiResponse<IEnumerable<QuestionResponseDto>>
+    {
+        Success = true,
+        Message = "Related questions retrieved successfully.",
+        Data = result
+    });
+}
     // DELETE: api/v1/questions/{id}
     [PermissionAuthorize("Question", PermissionAction.Delete)]
     [HttpDelete("{id}")]

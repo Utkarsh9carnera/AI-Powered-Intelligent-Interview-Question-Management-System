@@ -56,8 +56,7 @@ namespace InterviewManagement.API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("CanCreate")
-                        .HasColumnType("bit");
+                    
 
                     b.Property<bool>("CanDelete")
                         .HasColumnType("bit");

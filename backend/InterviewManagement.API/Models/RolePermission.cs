@@ -4,7 +4,7 @@ namespace InterviewManagement.API.Models
     {
         public Guid RolePermissionId { get; set; }
 
-        public Guid RoleTypeId { get; set; }
+        public Guid RoleId { get; set; }
 
         public string Permission { get; set; } = string.Empty;
 
@@ -16,6 +16,6 @@ namespace InterviewManagement.API.Models
 
         public bool CanDelete { get; set; }
 
-        public RoleType RoleType { get; set; } = null!;
+        public RoleType? RoleType { get; set; }
     }
 }

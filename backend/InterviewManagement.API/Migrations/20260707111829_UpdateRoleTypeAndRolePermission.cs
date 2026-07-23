@@ -22,11 +22,7 @@ namespace InterviewManagement.API.Migrations
                 name: "IX_Users_RoleId",
                 table: "Users");
 
-            migrationBuilder.AddColumn<Guid>(
-                name: "RoleId",
-                table: "Users",
-                type: "uniqueidentifier",
-                nullable: true);
+            
 
             migrationBuilder.CreateTable(
                 name: "RoleTypes",
@@ -99,9 +95,7 @@ namespace InterviewManagement.API.Migrations
                 name: "IX_Users_RoleId",
                 table: "Users");
 
-            migrationBuilder.DropColumn(
-                name: "RoleId",
-                table: "Users");
+           
 
             migrationBuilder.CreateTable(
                 name: "Roles",

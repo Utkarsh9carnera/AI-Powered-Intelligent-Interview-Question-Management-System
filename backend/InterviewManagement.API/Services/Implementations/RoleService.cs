@@ -20,7 +20,7 @@ namespace InterviewManagement.API.Services.Implementations
         .OrderBy(r => r.RoleName)
         .Select(r => new RoleResponseDto
         {
-            Id = r.RoleTypeId,
+            Id = r.RoleId,
             RoleName = r.RoleName
         })
         .ToListAsync();

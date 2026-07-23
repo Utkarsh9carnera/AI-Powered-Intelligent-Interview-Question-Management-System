@@ -16,6 +16,10 @@ namespace InterviewManagement.API.DTOs.Question
 
         public string Difficulty { get; set; } = string.Empty;
 
+        public string Organization { get; set; } = string.Empty;
+
+        public string Manager { get; set; } = string.Empty;
+
         public Guid CreatedBy { get; set; }
 
         public string CreatedByName { get; set; } = string.Empty;

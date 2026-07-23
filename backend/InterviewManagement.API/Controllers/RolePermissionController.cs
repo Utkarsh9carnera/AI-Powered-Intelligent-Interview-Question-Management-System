@@ -26,7 +26,7 @@ public class RolePermissionController : ControllerBase
             .Select(r => new RolePermissionResponseDto
             {
                 RolePermissionId = r.RolePermissionId,
-                RoleId = r.RoleTypeId,
+                RoleId = r.RoleId,
                 Permission = r.Permission,
                 CanView = r.CanView,
                 CanCreate = r.CanCreate,
@@ -60,7 +60,7 @@ public class RolePermissionController : ControllerBase
             Data = new RolePermissionResponseDto
             {
                 RolePermissionId = permission.RolePermissionId,
-                RoleId = permission.RoleTypeId,
+                RoleId = permission.RoleId,
                 Permission = permission.Permission,
                 CanView = permission.CanView,
                 CanCreate = permission.CanCreate,
@@ -76,13 +76,13 @@ public class RolePermissionController : ControllerBase
         [FromBody] CreateRolePermissionDto dto)
     {
         var roleExists = await _context.RoleTypes
-            .AnyAsync(r => r.RoleTypeId == dto.RoleId);
+            .AnyAsync(r => r.RoleId == dto.RoleId);
 
         if (!roleExists)
             throw new KeyNotFoundException("Role not found.");
 
         var exists = await _context.RolePermissions.AnyAsync(r =>
-            r.RoleTypeId == dto.RoleId &&
+            r.RoleId == dto.RoleId &&
             r.Permission == dto.Permission);
 
         if (exists)
@@ -90,7 +90,7 @@ public class RolePermissionController : ControllerBase
 
         var permission = new RolePermission
         {
-            RoleTypeId = dto.RoleId,
+            RoleId = dto.RoleId,
             Permission = dto.Permission,
             CanView = dto.CanView,
             CanCreate = dto.CanCreate,
@@ -111,7 +111,7 @@ public class RolePermissionController : ControllerBase
                 Data = new RolePermissionResponseDto
                 {
                     RolePermissionId = permission.RolePermissionId,
-                    RoleId = permission.RoleTypeId,
+                    RoleId = permission.RoleId,
                     Permission = permission.Permission,
                     CanView = permission.CanView,
                     CanCreate = permission.CanCreate,

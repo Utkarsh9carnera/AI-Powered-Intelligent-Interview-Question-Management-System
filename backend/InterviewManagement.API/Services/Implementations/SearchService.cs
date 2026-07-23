@@ -47,17 +47,24 @@ namespace InterviewManagement.API.Services.Implementations
                         q.QuestionMetadata.Any(qm => qm.MetadataId == metadataId)));
             }
 
-            // Pagination
-            query = query
-                .Skip((request.PageNumber - 1) * request.PageSize)
-                .Take(request.PageSize);
+            // Sorting
+            query = request.SortBy switch
+            {
+                "Newest" => query.OrderByDescending(q => q.CreatedAt),
 
+                "Oldest" => query.OrderBy(q => q.CreatedAt),
+
+                _ => query.OrderByDescending(q => q.CreatedAt) // Relevance (temporary)
+            };
+
+            // Total Records BEFORE pagination
             var totalRecords = await query.CountAsync();
 
-var questions = await query
-    .Skip((request.PageNumber - 1) * request.PageSize)
-    .Take(request.PageSize)
-    .ToListAsync();
+            // Pagination
+            var questions = await query
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToListAsync();
 
             var result = questions.Select(q => new SearchResponseDto
             {
@@ -81,34 +88,51 @@ var questions = await query
             }).ToList();
 
             // Save Search History
-            await _searchHistoryService.SaveSearchHistoryAsync(
-                request.UserId,
-                request.Keyword ?? string.Empty,
-                request.MetadataIds.Any()
-                    ? string.Join(",", request.MetadataIds)
-                    : "No Filters",
-                "Database Search"
-            );
+            try
+            {
+                Console.WriteLine("========== SEARCH ==========");
+                Console.WriteLine($"UserId : {request.UserId}");
+                Console.WriteLine($"Keyword: {request.Keyword}");
+                Console.WriteLine("Before SaveSearchHistory");
+
+                await _searchHistoryService.SaveSearchHistoryAsync(
+                    request.UserId,
+                    request.Keyword ?? string.Empty,
+                    request.MetadataIds.Any()
+                        ? string.Join(",", request.MetadataIds)
+                        : "No Filters",
+                    "Database Search"
+                );
+
+                Console.WriteLine("After SaveSearchHistory");
+                Console.WriteLine("============================");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Search History Error:");
+                Console.WriteLine(ex.ToString());
+            }
+
             // Save Audit Log
-await _auditLogService.SaveAuditLogAsync(
-    request.UserId,
-    "Search",
-    "Question Search",
-    "Question",
-    null,
-    $"User searched for '{request.Keyword ?? "All Questions"}'",
-    null,
-    "Information",
-    "SearchService"
-);
+            await _auditLogService.SaveAuditLogAsync(
+                request.UserId,
+                "Search",
+                "Question Search",
+                "Question",
+                null,
+                $"User searched for '{request.Keyword ?? "All Questions"}'",
+                null,
+                "Information",
+                "SearchService"
+            );
 
             return new SearchResultDto
-{
-    TotalRecords = totalRecords,
-    PageNumber = request.PageNumber,
-    PageSize = request.PageSize,
-    Questions = result
-};
+            {
+                TotalRecords = totalRecords,
+                PageNumber = request.PageNumber,
+                PageSize = request.PageSize,
+                Questions = result
+            };
         }
     }
 }
